@@ -1,0 +1,20 @@
+[project]
+name = "lammps-util"
+version = "0.0.1"
+authors = [
+  { name="Denis Strizhkin", email="strdenis02@gmail.com" },
+]
+description = "Python functions for working with LAMMPS"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/denisstrizhkin/lammps-util"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
