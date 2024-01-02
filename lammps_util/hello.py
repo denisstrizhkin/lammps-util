@@ -1,3 +1,2 @@
-
 def hi_there() -> None:
-    print('Hi, there!')
+    print("Hi, there!")
