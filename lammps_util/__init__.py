@@ -68,7 +68,7 @@ class Cluster:
             self.mz += cluster.vz * cluster.mass
             self.mass += cluster.mass
 
-            if cluster.atype == si_atom_type:
+            if cluster.type == si_atom_type:
                 self.count_si += 1
             else:
                 self.count_c += 1
@@ -280,8 +280,9 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
 
 def create_archive(dir_path: Path) -> None:
     """create_archive"""
+
     result = subprocess.run(
-        ["tar", "-czvf", str(dir_path.with_suffix("tar.gz")), str(dir_path)],
+        ["tar", "-czvf", str(dir_path.with_suffix(".tar.gz")), str(dir_path)],
         capture_output=True,
         text=True,
         check=True,
@@ -289,7 +290,7 @@ def create_archive(dir_path: Path) -> None:
     print(result.stdout)
 
 
-def file_without_siffix(file_path: Path) -> str:
+def file_without_suffix(file_path: Path) -> str:
     """file_without_suffix"""
 
     return str(file_path).removesuffix(file_get_suffix(file_path))
@@ -298,7 +299,7 @@ def file_without_siffix(file_path: Path) -> str:
 def file_get_suffix(file_path: Path) -> str:
     """file_get_suffix"""
 
-    return "".join(file_path.suffixes())
+    return "".join(file_path.suffixes)
 
 
 def save_table(filename, table, header="", dtype="f", precision=5, mode="w"):
@@ -311,5 +312,5 @@ def save_table(filename, table, header="", dtype="f", precision=5, mode="w"):
     elif dtype == "f":
         fmt_str = f"%.{precision}f"
 
-    with open(filename, f"{mode}b", encoding="utf8") as file:
+    with open(filename, f"{mode}b") as file:
         np.savetxt(file, table, delimiter="\t", fmt=fmt_str, header=header)
