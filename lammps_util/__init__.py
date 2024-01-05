@@ -281,12 +281,20 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
 def create_archive(dir_path: Path) -> None:
     """create_archive"""
 
+    # fmt: off
     result = subprocess.run(
-        ["tar", '-C', str(dir_path.parent), "-czvf", str(dir_path.with_suffix(".tar.gz")), str(dir_path.name)],
+        [
+            "tar",
+            "-C", str(dir_path.parent),
+            "-czvf", str(dir_path.with_suffix(".tar.gz")),
+            str(dir_path.name),
+        ],
         capture_output=True,
         text=True,
         check=True,
     )
+    # fmt: on
+
     print(result.stdout)
 
 
