@@ -282,7 +282,7 @@ def create_archive(dir_path: Path) -> None:
     """create_archive"""
 
     result = subprocess.run(
-        ["tar", "-czvf", str(dir_path.with_suffix(".tar.gz")), str(dir_path)],
+        ["tar", '-C', str(dir_path.parent), "-czvf", str(dir_path.with_suffix(".tar.gz")), str(dir_path.name)],
         capture_output=True,
         text=True,
         check=True,
