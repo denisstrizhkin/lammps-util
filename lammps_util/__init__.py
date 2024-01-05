@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import List, Tuple
 import subprocess
+import tempfile
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -182,10 +183,10 @@ def calc_surface_values(
 def calc_zero_lvl(input_file: Path, in_path: Path) -> float:
     """calc_zero_lvl"""
 
-    dump_path = "dump.temp"
-    dump_str = "x y z"
+    tmp_dir = Path(tempfile.gettempdir())
 
-    base_dir = Path("../")
+    dump_path = tmp_dir / "dump.temp"
+    dump_str = "x y z"
 
     lammps_run(
         in_path,
@@ -196,7 +197,7 @@ def calc_zero_lvl(input_file: Path, in_path: Path) -> float:
         ],
     )
 
-    dump = Dump(base_dir / dump_path)
+    dump = Dump(dump_path)
 
     return dump["z"][:].max()
 
