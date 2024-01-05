@@ -269,11 +269,36 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.plot_surface(Xs * SQUARE, Ys * SQUARE, Z, vmin=VMIN, vmax=VMAX, cmap=cm.viridis)
+    ax.plot_surface(
+        Xs * SQUARE, Ys * SQUARE, Z, vmin=VMIN, vmax=VMAX, cmap=cm.viridis
+    )
     ax.set_zlim3d(-60, 15)
     plt.savefig(f"{run_dir / 'surface_3d.png'}")
 
     return sigma
+
+
+def create_archive(dir_path: Path) -> None:
+    """create_archive"""
+    result = subprocess.run(
+        ["tar", "-czvf", str(dir_path.with_suffix("tar.gz")), str(dir_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    print(result.stdout)
+
+
+def file_without_siffix(file_path: Path) -> str:
+    """file_without_suffix"""
+
+    return str(file_path).removesuffix(file_get_suffix(file_path))
+
+
+def file_get_suffix(file_path: Path) -> str:
+    """file_get_suffix"""
+
+    return "".join(file_path.suffixes())
 
 
 def save_table(filename, table, header="", dtype="f", precision=5, mode="w"):
