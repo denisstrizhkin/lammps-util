@@ -11,7 +11,7 @@ def setup_root_logger(log_file_path: Path) -> None:
         "%(asctime)s %(funcName)s [%(levelname)s]: %(message)s"
     )
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.INFO)
 
     file_handler = logging.FileHandler(log_file_path, mode="w")
     file_handler.setFormatter(log_formatter)
