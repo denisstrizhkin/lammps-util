@@ -1,5 +1,6 @@
 """ lammps_util.lammps """
 
+import logging
 import subprocess
 import time
 from pathlib import Path
@@ -40,14 +41,14 @@ def lammps_run(
         args += ["-var", var[0], var[1]]
 
     args += ["-log", str(log_file)]
-    print("lammps_run:", args)
+    logging.info(" ".join(args))
 
     with subprocess.Popen(args, encoding="utf-8") as process:
         while process.poll() is None:
             time.sleep(0.1)
 
         if process.returncode != 0:
-            print("lammps_run: FAIL")
+            logging.error("FAIL")
             return 1
 
     return 0

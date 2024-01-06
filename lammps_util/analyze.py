@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import tempfile
+import logging
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
@@ -58,7 +59,7 @@ def calc_surface_values(
             if len(Z_vals) != 0:
                 Z[i, j] = Z_vals.max()
 
-    print(f"calc_surface: - NaN: {np.count_nonzero(np.isnan(Z))}")
+    logging.info(f"NaN: {np.count_nonzero(np.isnan(Z))}")
 
     def check_value(i, j):
         if i < 0 or j < 0 or i >= len(X) - 1 or j >= len(Y) - 1:
@@ -132,15 +133,13 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
 
     n_Y = Z.shape[1]
     Y = np.linspace(0, n_Y - 1, n_Y, dtype=int)
-    print(X.shape)
 
     def f_Z(i, j):
         return Z[i, j]
 
     z_all = Z.flatten()
     sigma = np.std(z_all)
-    print(f"calc_surface: - D: {sigma}")
-    # print(z_data)
+    logging.info(f"D: {sigma}")
 
     plotting(Z, run_dir)
     histogram(Z, run_dir)

@@ -14,7 +14,6 @@ class Dump:
         with open(dump_path, "r", encoding="utf-8") as file:
             self.keys = file.readlines()[8].split()
             self.keys = self.keys[2:]
-        print(self.keys)
 
         self.name = str(dump_path)
 

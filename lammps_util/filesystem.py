@@ -1,5 +1,6 @@
 """ lammps_util.filesystem """
 
+import logging
 import subprocess
 from pathlib import Path
 import numpy as np
@@ -22,7 +23,7 @@ def create_archive(dir_path: Path) -> None:
     )
     # fmt: on
 
-    print(result.stdout)
+    logging.info(result.stdout)
 
 
 def file_without_suffix(file_path: Path) -> str:
