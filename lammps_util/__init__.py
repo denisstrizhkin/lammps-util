@@ -9,3 +9,4 @@ from .filesystem import (
     file_get_suffix,
     save_table,
 )
+from .run import setup_root_logger
