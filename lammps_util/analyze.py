@@ -84,11 +84,12 @@ def calc_surface_values(
     return Z
 
 
-def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
+def calc_surface(
+    data: Dump, run_dir: Path, lattice: float, zero_lvl: float, c60_width: int
+):
     """calc_surface"""
 
     SQUARE = lattice / 2
-    COEFF = 5
     VMIN = -20
     VMAX = 10
 
@@ -96,8 +97,8 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
         fig, ax = plt.subplots()
 
         width = len(square) + 1
-        x = np.linspace(0, COEFF * lattice * 2, width)
-        y = np.linspace(0, COEFF * lattice * 2, width)
+        x = np.linspace(0, c60_width * lattice * 2, width)
+        y = np.linspace(0, c60_width * lattice * 2, width)
         x, y = np.meshgrid(x, y)
 
         ax.set_aspect("equal")
@@ -126,7 +127,7 @@ def calc_surface(data: Dump, run_dir: Path, lattice: float, zero_lvl: float):
         num_bins = np.linspace(min_boundary, max_boundary, n_bins)
         return num_bins
 
-    Z = calc_surface_values(data, lattice, COEFF, SQUARE) - zero_lvl
+    Z = calc_surface_values(data, lattice, c60_width, SQUARE) - zero_lvl
 
     n_X = Z.shape[0]
     X = np.linspace(0, n_X - 1, n_X, dtype=int)
