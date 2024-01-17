@@ -8,5 +8,7 @@ from .filesystem import (
     file_without_suffix,
     file_get_suffix,
     save_table,
+    dump_delete_atoms,
+    input_delete_atoms,
 )
 from .run import setup_root_logger
