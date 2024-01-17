@@ -86,10 +86,13 @@ def input_delete_atoms(
         for line in f_in:
             cnt += 1
 
+            tokens = line.split(" ", 1)
             if cnt == 3:
-                num_atoms = int(line.split(" ", 1)[0]) - len(ids_to_delete)
+                num_atoms = int(tokens[0]) - len(ids_to_delete)
                 f_out.write(f"{num_atoms} atoms\n")
-            elif (cnt < 17) or (
-                not int(line.split(" ", 1)[0]) in ids_to_delete
+            elif (
+                (cnt < 17)
+                or len(tokens) == 1
+                or not int(tokens[0]) in ids_to_delete
             ):
                 f_out.write(line)
