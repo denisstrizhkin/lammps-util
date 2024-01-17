@@ -3,6 +3,7 @@
 import logging
 import subprocess
 from pathlib import Path
+from typing import List
 import numpy as np
 
 
@@ -50,3 +51,45 @@ def save_table(filename, table, header="", dtype="f", precision=5, mode="w"):
 
     with open(filename, f"{mode}b") as file:
         np.savetxt(file, table, delimiter="\t", fmt=fmt_str, header=header)
+
+
+def dump_delete_atoms(
+    in_path: Path, out_path: Path, ids_to_delete: List[int]
+) -> None:
+    """dump_delete_atoms"""
+
+    with open(in_path, "r", encoding="utf-8") as f_in, open(
+        out_path, "w", encoding="utf-8"
+    ) as f_out:
+        cnt = 0
+        for line in f_in:
+            cnt += 1
+
+            if cnt == 4:
+                num_atoms = int(line) - len(ids_to_delete)
+                f_out.write(f"{num_atoms}\n")
+            elif (cnt < 10) or (
+                not int(line.split(" ", 1)[0]) in ids_to_delete
+            ):
+                f_out.write(line)
+
+
+def input_delete_atoms(
+    in_path: Path, out_path: Path, ids_to_delete: List[int]
+) -> None:
+    """input_delete_atoms"""
+
+    with open(in_path, "r", encoding="utf-8") as f_in, open(
+        out_path, "w", encoding="utf-8"
+    ) as f_out:
+        cnt = 0
+        for line in f_in:
+            cnt += 1
+
+            if cnt == 3:
+                num_atoms = int(line.split(" ", 1)[0]) - len(ids_to_delete)
+                f_out.write(f"{num_atoms} atoms\n")
+            elif (cnt < 17) or (
+                not int(line.split(" ", 1)[0]) in ids_to_delete
+            ):
+                f_out.write(line)
