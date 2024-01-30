@@ -172,6 +172,7 @@ def get_parsed_file_path(file_path: Path, suffix: str = ""):
 def carbon_dist_parse(file_path: Path):
     with open(file_path, "r") as f:
         lines = f.readlines()
+    lines.pop(0)
 
     lines_dic: dict[int, list[tuple[float, ...]]] = {}
     sim_num: int
