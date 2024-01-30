@@ -9,6 +9,7 @@ import numpy as np
 
 from .classes import Dump
 from .lammps import lammps_run
+from .filesystem import save_table, file_get_suffix, file_without_suffix
 
 
 def calc_zero_lvl(input_file: Path, in_path: Path) -> float:
@@ -157,3 +158,50 @@ def calc_surface(
     plt.savefig(f"{run_dir / 'surface_3d.png'}")
 
     return sigma
+
+
+def get_parsed_file_path(file_path: Path):
+    return (
+        file_without_suffix(file_path) + "_parsed" + file_get_suffix(file_path)
+    )
+
+
+def carbon_dist_parse(file_path: Path):
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+
+    lines_dic: dict[int, list[tuple[float, ...]]] = {}
+    sim_num: int
+    for line in lines:
+        tokens = line.strip().split()
+        if len(tokens) == 0:
+            continue
+
+        if tokens[0] == "#":
+            sim_num = int(tokens[1])
+            lines_dic[sim_num] = []
+        else:
+            lines_dic[sim_num].append(tuple(map(float, tokens)))
+
+    z_min: float = float("inf")
+    z_max: float = float("-inf")
+    for key in lines_dic.keys():
+        z_min = min(lines_dic[key][0][0], z_min)
+        z_max = max(lines_dic[key][len(lines_dic[key]) - 1][0], z_max)
+
+    bins = np.linspace(z_min, z_max, int(z_max - z_min) + 1)
+    table = np.zeros((len(lines_dic) + 1, len(bins) + 1))
+
+    sim_nums = list(lines_dic.keys())
+    for i in range(0, len(sim_nums)):
+        table[i + 1][0] = sim_nums[i]
+        for pair in lines_dic[sim_nums[i]]:
+            index = int(pair[0] - z_min)
+            table[i + 1][index + 1] = pair[1]
+
+    for i in range(0, len(bins)):
+        table[0][i + 1] = bins[i]
+
+    header_str = "simN " + " ".join(list(map(str, bins)))
+    output_path = get_parsed_file_path(file_path)
+    save_table(output_path, table.T, header_str)
