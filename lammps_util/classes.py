@@ -8,11 +8,12 @@ import numpy as np
 class Dump:
     """Dump"""
 
-    def __init__(self, dump_path: Path):
-        self.data = np.loadtxt(dump_path, ndmin=2, skiprows=9)
+    def __init__(self, dump_path: Path) -> None:
+        self.data: np.ndarray = np.loadtxt(dump_path, ndmin=2, skiprows=9)
 
         with open(dump_path, "r", encoding="utf-8") as file:
-            self.keys = file.readlines()[8].split()
+            lines = file.readlines()
+            self.keys = lines[8].strip().split()
             self.keys = self.keys[2:]
 
         self.name = str(dump_path)
@@ -20,12 +21,12 @@ class Dump:
         if len(set(self.keys)) != len(self.keys):
             raise ValueError("dump keys must be unique")
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> np.ndarray:
         if key not in self.keys:
             raise ValueError(f"no such key: {key}")
 
         if len(self.data) == 0:
-            return []
+            return np.empty(0)
 
         return self.data[:, self.keys.index(key)]
 
