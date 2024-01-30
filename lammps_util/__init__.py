@@ -2,7 +2,14 @@
 
 from .lammps import lammps_run
 from .classes import Dump, Atom, Cluster
-from .analyze import calc_zero_lvl, calc_surface
+from .analyze import (
+    calc_zero_lvl,
+    calc_surface,
+    carbon_dist_parse,
+    clusters_parse,
+    clusters_parse_sum,
+    clusters_parse_angle_dist,
+)
 from .filesystem import (
     create_archive,
     file_without_suffix,
