@@ -160,9 +160,12 @@ def calc_surface(
     return sigma
 
 
-def get_parsed_file_path(file_path: Path):
+def get_parsed_file_path(file_path: Path, suffix: str = ""):
     return (
-        file_without_suffix(file_path) + "_parsed" + file_get_suffix(file_path)
+        file_without_suffix(file_path)
+        + "_parsed"
+        + suffix
+        + file_get_suffix(file_path)
     )
 
 
@@ -205,3 +208,103 @@ def carbon_dist_parse(file_path: Path):
     header_str = "simN " + " ".join(list(map(str, bins)))
     output_path = get_parsed_file_path(file_path)
     save_table(output_path, table.T, header_str)
+
+
+def clusters_parse_angle_dist(file_path: Path, n_runs: int):
+    clusters = np.loadtxt(file_path, ndmin=2, skiprows=1)
+
+    clusters_sim_num_n = clusters[:, :2]
+    clusters_sim_num_n[:, 1] = clusters[:, 1] + clusters[:, 2]
+
+    clusters_enrg_ang = clusters[:, -2:]
+    clusters_enrg_ang[:, 0] /= clusters_sim_num_n[:, 1]
+    print(clusters_enrg_ang)
+
+    num_bins = (85 - 5) // 10 + 1
+    num_sims = n_runs + 1
+
+    number_table = np.zeros((num_bins, num_sims))
+    energy_table = np.zeros((num_bins, num_sims))
+
+    number_table[:, 0] = np.linspace(5, 85, 9)
+    energy_table[:, 0] = np.linspace(5, 85, 9)
+
+    for i in range(0, len(clusters)):
+        angle_index = int(np.floor(clusters_enrg_ang[i, 1])) // 10
+        sim_index = int(clusters_sim_num_n[i, 0])
+
+        if angle_index >= num_bins:
+            continue
+
+        number_table[angle_index, sim_index] += clusters_sim_num_n[i, 1]
+        energy_table[angle_index, sim_index] += clusters_enrg_ang[i, 1]
+
+    print(number_table[:, :10])
+
+    header_str_number = "angle N1 N2 N3 ... N50"
+    output_path_number = get_parsed_file_path(file_path, "_number_dist")
+    save_table(output_path_number, number_table, header_str_number)
+
+    header_str_energy = "angle E1 E2 E3 ... E50"
+    output_path_energy = get_parsed_file_path(file_path, "_energy_dist")
+    save_table(output_path_energy, energy_table, header_str_energy)
+
+
+def clusters_parse(file_path: Path, n_runs: int):
+    clusters = np.loadtxt(file_path, ndmin=2, skiprows=1)
+    clusters = clusters[:, :3]
+
+    clusters_dic: dict[str, dict[int, int]] = {}
+    for cluster in clusters:
+        cluster_str = "Si" + str(int(cluster[1])) + "C" + str(int(cluster[2]))
+        if cluster_str not in clusters_dic.keys():
+            clusters_dic[cluster_str] = {}
+
+        sim_num = int(cluster[0])
+        if not cluster[0] in clusters_dic[cluster_str]:
+            clusters_dic[cluster_str][sim_num] = 0
+
+        clusters_dic[cluster_str][sim_num] += 1
+
+    total_sims = n_runs
+    total_clusters = len(clusters_dic.keys())
+
+    table = np.zeros((total_sims, total_clusters + 1))
+    cluster_index = 0
+    for key in clusters_dic.keys():
+        for sim_num in clusters_dic[key].keys():
+            table[sim_num - 1][cluster_index + 1] = clusters_dic[key][sim_num]
+            table[sim_num - 1, 0] = sim_num
+        cluster_index += 1
+
+    header_str = "simN\t" + "\t".join(clusters_dic.keys())
+    output_path = get_parsed_file_path(file_path)
+    save_table(output_path, table, header_str, dtype="d")
+
+
+def clusters_parse_sum(file_path: Path, n_runs: int):
+    clusters = np.loadtxt(file_path, ndmin=2, skiprows=1)
+
+    clusters = clusters[:, :3]
+
+    clusters_dic: dict[int, dict[str, int]] = {}
+    for cluster in clusters:
+        sim_num = int(cluster[0])
+        if sim_num not in clusters_dic.keys():
+            clusters_dic[sim_num] = {}
+            clusters_dic[sim_num]["Si"] = 0
+            clusters_dic[sim_num]["C"] = 0
+        clusters_dic[sim_num]["Si"] += cluster[1]
+        clusters_dic[sim_num]["C"] += cluster[2]
+    table = np.zeros((n_runs, 4))
+
+    for i in clusters_dic.keys():
+        table[i - 1][0] = i
+        if i in clusters_dic:
+            table[i - 1][1] = clusters_dic[i]["Si"]
+            table[i - 1][2] = clusters_dic[i]["C"]
+            table[i - 1][3] = table[i - 1][1] + table[i - 1][2]
+
+    header_str = "simN Si C"
+    output_path = get_parsed_file_path(file_path, "_sum")
+    save_table(output_path, table, header_str, dtype="d")
