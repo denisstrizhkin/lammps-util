@@ -21,11 +21,11 @@ def calc_zero_lvl(input_file: Path, in_path: Path) -> float:
 
     lammps_run(
         in_path,
-        [
-            ("input_file", str(input_file)),
-            ("dump_path", str(dump_path)),
-            ("dump_str", dump_str),
-        ],
+        {
+            "input_file": str(input_file),
+            "dump_path": str(dump_path),
+            "dump_str": dump_str,
+        },
     )
 
     dump = Dump(dump_path)

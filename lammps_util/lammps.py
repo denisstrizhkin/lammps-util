@@ -4,12 +4,11 @@ import logging
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Tuple
 
 
 def lammps_run(
     in_file: Path,
-    in_vars: List[Tuple[str, str]] | None = None,
+    in_vars: dict[str, str] | None = None,
     omp_threads: int = 4,
     mpi_cores: int = 3,
     log_file: Path = Path("./log.lammps"),
@@ -17,7 +16,7 @@ def lammps_run(
     """lammps_run"""
 
     if in_vars is None:
-        in_vars = []
+        in_vars = {}
 
     # fmt: off
     args = [
@@ -37,8 +36,8 @@ def lammps_run(
         ]
     # fmt: on
 
-    for var in in_vars:
-        args += ["-var", var[0], var[1]]
+    for key, value in in_vars.items():
+        args += ["-var", key, value]
 
     args += ["-log", str(log_file)]
     logging.info(" ".join(args))
