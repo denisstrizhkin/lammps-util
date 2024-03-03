@@ -6,7 +6,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .classes import Dump
+from .classes import Dump, Atom
 from .lammps import lammps_run
 from .filesystem import save_table, file_get_suffix, file_without_suffix
 
@@ -321,3 +321,53 @@ def clusters_parse_sum(file_path: Path, n_runs: int):
     header_str = "simN Si C"
     output_path = get_parsed_file_path(file_path, "_sum")
     save_table(output_path, table, header_str, dtype="d")
+
+
+def get_cluster_atoms_dict(
+    cluster_dump: Dump,
+) -> dict[int, list[Atom]]:
+    """get_cluster_atoms_dict"""
+    cluster_id = cluster_dump["c_clusters"]
+
+    unique, counts = np.unique(cluster_id, return_counts=True)
+    cluster_count = dict(zip(unique, counts))
+
+    cluster_to_delete = dict(
+        filter(lambda x: x[1] > 1000, cluster_count.items())
+    )
+
+    cluster_dict: dict[int, list[Atom]] = {}
+    for cid in np.unique(cluster_id):
+        cluster_dict[cid] = []
+
+    x = cluster_dump["x"]
+    y = cluster_dump["y"]
+    z = cluster_dump["z"]
+    vx = cluster_dump["vx"]
+    vy = cluster_dump["vy"]
+    vz = cluster_dump["vz"]
+    mass = cluster_dump["c_mass"]
+    type = cluster_dump["type"]
+    id = cluster_dump["id"]
+
+    for i, cid in enumerate(cluster_id):
+        atom = Atom(
+            x=x[i],
+            y=y[i],
+            z=z[i],
+            vx=vx[i],
+            vy=vy[i],
+            vz=vz[i],
+            mass=mass[i],
+            type=type[i],
+            id=id[i],
+        )
+        cluster_dict[cid].append(atom)
+
+    for cid in cluster_to_delete.keys():
+        logging.info(
+            f"deleteing cluster {cid} with {len(cluster_dict[cid])} atoms"
+        )
+        cluster_dict.pop(cid)
+
+    return cluster_dict

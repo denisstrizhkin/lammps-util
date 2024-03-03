@@ -58,9 +58,10 @@ def dump_delete_atoms(
 ) -> None:
     """dump_delete_atoms"""
 
-    with open(in_path, "r", encoding="utf-8") as f_in, open(
-        out_path, "w", encoding="utf-8"
-    ) as f_out:
+    with (
+        open(in_path, "r", encoding="utf-8") as f_in,
+        open(out_path, "w", encoding="utf-8") as f_out,
+    ):
         cnt = 0
         for line in f_in:
             cnt += 1
@@ -79,9 +80,10 @@ def input_delete_atoms(
 ) -> None:
     """input_delete_atoms"""
 
-    with open(in_path, "r", encoding="utf-8") as f_in, open(
-        out_path, "w", encoding="utf-8"
-    ) as f_out:
+    with (
+        open(in_path, "r", encoding="utf-8") as f_in,
+        open(out_path, "w", encoding="utf-8") as f_out,
+    ):
         cnt = 0
         for line in f_in:
             cnt += 1

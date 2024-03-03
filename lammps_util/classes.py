@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import List
 import numpy as np
+import numpy.typing as npt
 
 
 class Dump:
@@ -21,7 +22,7 @@ class Dump:
         if len(set(self.keys)) != len(self.keys):
             raise ValueError("dump keys must be unique")
 
-    def __getitem__(self, key: str) -> np.ndarray:
+    def __getitem__(self, key: str) -> npt.NDArray[np.double]:
         if key not in self.keys:
             raise ValueError(f"no such key: {key}")
 
