@@ -9,18 +9,11 @@ import numpy.typing as npt
 class Dump:
     """Dump"""
 
-    def __init__(self, dump_path: Path) -> None:
-        self.data: np.ndarray = np.loadtxt(dump_path, ndmin=2, skiprows=9)
-
-        with open(dump_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
-            self.keys = lines[8].strip().split()
-            self.keys = self.keys[2:]
-
-        self.name = str(dump_path)
-
-        if len(set(self.keys)) != len(self.keys):
-            raise ValueError("dump keys must be unique")
+    def __init__(self, dump_path: Path, timestemp: int | None = None) -> None:
+        self.dump_path = dump_path
+        self.timestep = timestemp
+        self._data: npt.NDArray[np.double] | None = None
+        self._keys: list[str] | None = None
 
     def __getitem__(self, key: str) -> npt.NDArray[np.double]:
         if key not in self.keys:
@@ -30,6 +23,70 @@ class Dump:
             return np.empty(0)
 
         return self.data[:, self.keys.index(key)]
+
+    @property
+    def name(self) -> str:
+        return str(self.dump_path)
+
+    @property
+    def timesteps(self) -> list[tuple[int, int]]:
+        timesteps: list[tuple[int, int]] = list()
+
+        with open(self.dump_path, "r") as file:
+            lines = file.readlines()
+            for i, line in enumerate(lines):
+                if line.strip() == "ITEM: TIMESTEP":
+                    timestep = int(lines[i + 1].strip())
+                    timesteps.append((timestep, i))
+
+        if len(timesteps) == 0:
+            raise ValueError(f"dump: {self.dump_path} - is empty")
+
+        timesteps.append((-1, len(lines)))
+
+        return timesteps
+
+    @property
+    def read_window(self) -> tuple[int, int]:
+        start = self.timesteps[self.timestep_i][1]
+        end = self.timesteps[self.timestep_i + 1][1]
+        return (start, end)
+
+    @property
+    def timestep_i(self) -> int:
+        if self.timestep is None:
+            return 0
+
+        for i, item in enumerate(self.timesteps):
+            if item[0] == self.timestep:
+                return i
+
+        raise ValueError(f"no timestep found: {self.timestep}")
+
+    @property
+    def data(self) -> npt.NDArray[np.double]:
+        if self._data is not None:
+            return self._data
+
+        start, end = self.read_window
+        start += 9
+        self._data = np.loadtxt(
+            self.dump_path, ndmin=2, skiprows=start, max_rows=(end - start)
+        )
+        return self._data
+
+    @property
+    def keys(self) -> list[str]:
+        if self._keys is not None:
+            return self._keys
+
+        start, _ = self.read_window
+        with open(self.dump_path, "r") as file:
+            lines = file.readlines()
+            keys = lines[start + 8].strip().split()
+            self._keys = keys[2:]
+
+        return self._keys
 
 
 class Atom:
