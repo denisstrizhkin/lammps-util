@@ -9,6 +9,7 @@ from .analyze import (
     clusters_parse,
     clusters_parse_sum,
     clusters_parse_angle_dist,
+    get_cluster_atoms_dict,
 )
 from .filesystem import (
     create_archive,
