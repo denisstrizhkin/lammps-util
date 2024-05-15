@@ -3,6 +3,8 @@
 from pathlib import Path
 import tempfile
 import logging
+import operator
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -325,7 +327,7 @@ def clusters_parse_sum(file_path: Path, n_runs: int):
 
 def get_cluster_atoms_dict(
     cluster_dump: Dump,
-) -> dict[int, list[Atom]]:
+) -> tuple[dict[int, list[Atom]], list[Atom]]:
     """get_cluster_atoms_dict"""
     cluster_id = cluster_dump["c_clusters"]
 
@@ -335,6 +337,7 @@ def get_cluster_atoms_dict(
     cluster_to_delete = dict(
         filter(lambda x: x[1] > 1000, cluster_count.items())
     )
+    rim_id = max(cluster_to_delete.items(), key=operator.itemgetter(1))[0]
 
     cluster_dict: dict[int, list[Atom]] = {}
     for cid in np.unique(cluster_id):
@@ -364,10 +367,11 @@ def get_cluster_atoms_dict(
         )
         cluster_dict[cid].append(atom)
 
+    rim_atoms = cluster_dict[rim_id]
     for cid in cluster_to_delete.keys():
         logging.info(
             f"deleteing cluster {cid} with {len(cluster_dict[cid])} atoms"
         )
         cluster_dict.pop(cid)
 
-    return cluster_dict
+    return cluster_dict, rim_atoms
