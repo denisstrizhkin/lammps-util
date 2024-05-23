@@ -7,6 +7,7 @@ import operator
 
 import matplotlib.pyplot as plt
 import numpy as np
+from lammps import lammps
 
 from .classes import Dump, Atom
 from .lammps import lammps_run
@@ -323,6 +324,51 @@ def clusters_parse_sum(file_path: Path, n_runs: int):
     header_str = "simN Si C"
     output_path = get_parsed_file_path(file_path, "_sum")
     save_table(output_path, table, header_str, dtype="d")
+
+
+def create_clusters_dump(
+    dump_path: Path, timestep: int, out_path: Path
+) -> None:
+    lmp = lammps()
+    init = f"""
+    units metal
+    dimension 3
+    boundary p p m
+    atom_style atomic
+    atom_modify map yes
+
+    region r block -1 1 -1 1 -1 1
+    create_box 2 r
+
+    read_dump {dump_path} {timestep} x y z vx vy vz box yes add yes
+
+    mass 1 28.08553
+    mass 2 12.011
+
+    pair_style tersoff/zbl
+    pair_coeff * * SiC.tersoff.zbl Si C
+    neigh_modify every 1 delay 0 check no
+    neigh_modify binsize 0.0
+    neigh_modify one 4000
+
+    compute atom_ke all ke/atom
+    compute clusters all cluster/atom 3
+    compute mass all property/atom mass
+    dump clusters all custom 1 {out_path} id x y z vx vy vz type c_mass c_clusters c_atom_ke
+    run 0
+    """
+    lmp.commands_string(init)
+
+
+def get_sputtered_ids(
+    dump: Dump,
+) -> list[int]:
+    cluster_id = dump["c_clusters"]
+    unique, counts = np.unique(cluster_id, return_counts=True)
+    cluster_count = dict(zip(unique, counts))
+    cluster_count = dict(filter(lambda x: x[1] > 1000, cluster_count.items()))
+    clusters_to_delete = list(cluster_count.keys())
+    return dump["id"][np.logical_not(np.isin(cluster_id, clusters_to_delete))]
 
 
 def get_cluster_atoms_dict(

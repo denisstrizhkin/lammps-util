@@ -9,7 +9,9 @@ from .analyze import (
     clusters_parse,
     clusters_parse_sum,
     clusters_parse_angle_dist,
+    create_clusters_dump,
     get_cluster_atoms_dict,
+    get_sputtered_ids,
 )
 from .filesystem import (
     create_archive,
