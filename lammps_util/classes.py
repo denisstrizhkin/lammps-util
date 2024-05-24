@@ -89,6 +89,16 @@ class Dump:
         return self._keys
 
 
+#    def select(self, mask: npt.NDArray[np.double]) -> Dump:
+#        dump = Dump(self.dump_path, self.timestep)
+#        dump._keys = self._keys
+#        dump._data = self._data[mask, :]
+#        return Dump
+#
+#    def save(self, dump_path: Path):
+#        pass
+
+
 class Atom:
     """Atom"""
 
