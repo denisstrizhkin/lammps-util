@@ -340,7 +340,7 @@ def create_clusters_dump(
     region r block -1 1 -1 1 -1 1
     create_box 2 r
 
-    read_dump {dump_path} {timestep} x y z vx vy vz box yes add yes
+    read_dump {dump_path} {timestep} x y z vx vy vz box yes add keep
 
     mass 1 28.08553
     mass 2 12.011
