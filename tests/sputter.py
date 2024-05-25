@@ -4,11 +4,13 @@ from pathlib import Path
 from lammps_util import Dump
 import lammps_util
 
+from test_lammps_util import TestLAMMPSUtil
+
 DUMP_PATH = Path("./dump.final")
 OUTPUT_PATH = Path("/tmp/tmp.dump")
 
 
-class TestSputterMethods(unittest.TestCase):
+class TestSputterMethods(TestLAMMPSUtil):
     @classmethod
     def setUpClass(cls):
         cls._dump = Dump(DUMP_PATH)
@@ -33,17 +35,6 @@ class TestSputterMethods(unittest.TestCase):
         except ValueError as e:
             self.fail(e)
 
-    def check_atom(self, atom, id_, x, y, z, vx, vy, vz, type_, mass):
-        self.assertEqual(atom.id, id_)
-        self.assertEqual(atom.x, x)
-        self.assertEqual(atom.y, y)
-        self.assertEqual(atom.z, z)
-        self.assertEqual(atom.vx, vx)
-        self.assertEqual(atom.vy, vy)
-        self.assertEqual(atom.vz, vz)
-        self.assertEqual(atom.type, type_)
-        self.assertEqual(atom.mass, mass)
-
     def test_get_cluster_atoms_dict(self):
         lammps_util.create_clusters_dump(
             DUMP_PATH, self._dump.timesteps[0][0], OUTPUT_PATH
@@ -57,30 +48,30 @@ class TestSputterMethods(unittest.TestCase):
         self.assertEqual(len(cluster_atoms_dict[396856]), 1)
         self.check_atom(
             cluster_atoms_dict[396856][0],
-            396856,
             -89.628,
             -28.8952,
             197.315,
             -61.4057,
             -51.0242,
             23.3924,
-            1,
             28.0855,
+            1,
+            396856
         )
 
         self.assertIn(403231, cluster_atoms_dict.keys())
         self.assertEqual(len(cluster_atoms_dict[403231]), 1)
         self.check_atom(
             cluster_atoms_dict[403231][0],
-            403231,
             -105.942,
             -42.2043,
             208.304,
             23.609,
             -9.31622,
             28.1357,
-            2,
             12.011,
+            2,
+            403231
         )
 
         ids = [384761, 384432, 384755, 403227]

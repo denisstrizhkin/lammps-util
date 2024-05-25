@@ -113,6 +113,9 @@ class Atom:
         self.type = type
         self.id = id
 
+    def __str__(self) -> str:
+        return f"{self.x} {self.y} {self.z} {self.vx} {self.vy} {self.vz} {self.mass} {self.type} {self.id}"
+
 
 class Cluster:
     """Cluster"""

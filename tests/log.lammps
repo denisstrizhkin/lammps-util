@@ -1,0 +1,92 @@
+LAMMPS (2 Aug 2023 - Update 2)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+
+    units metal
+    dimension 3
+    boundary p p m
+    atom_style atomic
+    atom_modify map yes
+
+    region r block -1 1 -1 1 -1 1
+    create_box 2 r
+Created orthogonal box = (-1 -1 -1) to (1 1 1)
+  1 by 1 by 1 MPI processor grid
+
+    read_dump dump.final 5100 x y z vx vy vz box yes add keep
+Scanning dump file ...
+Reading snapshot from dump file ...
+  orthogonal box = (-108.6 -108.6 -86.997731) to (108.6 108.6 1352.4739)
+  0 atoms before read
+  403260 atoms in snapshot
+  0 atoms purged
+  0 atoms replaced
+  0 atoms trimmed
+  403260 atoms added
+  403260 atoms after read
+
+    mass 1 28.08553
+    mass 2 12.011
+
+    pair_style tersoff/zbl
+    pair_coeff * * SiC.tersoff.zbl Si C
+Reading tersoff/zbl potential file SiC.tersoff.zbl with DATE: 2009-04-15
+    neigh_modify every 1 delay 0 check no
+    neigh_modify binsize 0.0
+    neigh_modify one 4000
+
+    compute atom_ke all ke/atom
+    compute clusters all cluster/atom 3
+    compute mass all property/atom mass
+    dump clusters all custom 1 /tmp/tmp.dump id x y z vx vy vz type c_mass c_clusters c_atom_ke
+    run 0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = no
+  max neighbors/atom: 4000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 87 87 576
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair tersoff/zbl, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) compute cluster/atom, occasional, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 128.2 | 128.2 | 128.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+      5100   61.268505     -1849545.8      0             -1846352.2      99.090264      67908285     
+Loop time of 1.38e-06 on 1 procs for 0 steps with 403260 atoms
+
+217.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.38e-06   |            |       |100.00
+
+Nlocal:         403260 ave      403260 max      403260 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          38816 ave       38816 max       38816 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.11521e+07 ave 1.11521e+07 max 1.11521e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11152114
+Ave neighs/atom = 27.654898
+Neighbor list builds = 0
+Dangerous builds not checked
+    
+Total wall time: 0:00:02
