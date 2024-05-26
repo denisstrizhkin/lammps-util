@@ -1,5 +1,6 @@
 import unittest
 
+
 class TestLAMMPSUtil(unittest.TestCase):
     def check_atom(self, atom, x, y, z, vx, vy, vz, mass, type_, id_):
         self.assertEqual(atom.id, id_)

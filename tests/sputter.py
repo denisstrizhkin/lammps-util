@@ -56,7 +56,7 @@ class TestSputterMethods(TestLAMMPSUtil):
             23.3924,
             28.0855,
             1,
-            396856
+            396856,
         )
 
         self.assertIn(403231, cluster_atoms_dict.keys())
@@ -71,7 +71,7 @@ class TestSputterMethods(TestLAMMPSUtil):
             28.1357,
             12.011,
             2,
-            403231
+            403231,
         )
 
         ids = [384761, 384432, 384755, 403227]
