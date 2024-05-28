@@ -329,16 +329,32 @@ def clusters_parse_sum(file_path: Path, n_runs: int):
     save_table(output_path, table, header_str, dtype="d")
 
 
-def create_clusters_dump(
-    dump_path: Path, timestep: int, out_path: Path
-) -> None:
-    lmp = lammps()
-    init = f"""
+def lammps_script_init() -> str:
+    return f"""
     units metal
     dimension 3
     boundary p p m
     atom_style atomic
     atom_modify map yes
+    """
+
+
+def lammps_script_potential() -> str:
+    return f"""
+    pair_style tersoff/zbl
+    pair_coeff * * SiC.tersoff.zbl Si C
+    neigh_modify every 1 delay 0 check no
+    neigh_modify binsize 0.0
+    neigh_modify one 4000
+    """
+
+
+def create_clusters_dump(
+    dump_path: Path, timestep: int, out_path: Path
+) -> None:
+    lmp = lammps()
+    init = f"""
+    {lammps_script_init()}
 
     region r block -1 1 -1 1 -1 1
     create_box 2 r
@@ -348,11 +364,7 @@ def create_clusters_dump(
     mass 1 28.08553
     mass 2 12.011
 
-    pair_style tersoff/zbl
-    pair_coeff * * SiC.tersoff.zbl Si C
-    neigh_modify every 1 delay 0 check no
-    neigh_modify binsize 0.0
-    neigh_modify one 4000
+    {lammps_script_potential()}
 
     compute atom_ke all ke/atom
     compute clusters all cluster/atom 3
@@ -383,26 +395,17 @@ def create_crater_dump(run_dir: Path):
 
     with open(run_dir / "vars.json", "r") as file:
         vars = json.load(file)
-    print(vars)
 
     C60_x = float(vars["C60_x"])
     C60_y = float(vars["C60_y"])
     lmp = lammps()
     script = f"""
-    units metal
-    dimension 3
-    boundary p p m
-    atom_style atomic
-    atom_modify map yes
+    {lammps_script_init()}
     
     read_data {input_path}
     displace_atoms all move {C60_x} {C60_y} 0 units box
 
-    pair_style tersoff/zbl
-    pair_coeff * * SiC.tersoff.zbl Si C
-    neigh_modify every 1 delay 0 check no
-    neigh_modify binsize 0.0
-    neigh_modify one 4000
+    {lammps_script_potential()}
 
     group Si type 1
 
@@ -421,7 +424,11 @@ def create_crater_dump(run_dir: Path):
 
     read_dump {input_dump.name} {input_dump.timesteps[0][0]} x y z add keep replace yes
     displace_atoms all move {C60_x} {C60_y} 0 units box
-    write_dump vac3 custom {crater_path} id type x y z
+
+    compute voro_vol vac3 voronoi/atom only_group
+    compute clusters vac3 cluster/atom 3
+    dump clusters vac3 custom 1 {crater_path} id x y z type c_clusters c_voro_vol[1]
+    run 0
     """
     lmp.commands_string(script)
 
