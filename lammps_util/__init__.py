@@ -10,6 +10,8 @@ from .analyze import (
     clusters_parse_sum,
     clusters_parse_angle_dist,
     create_clusters_dump,
+    create_crater_dump,
+    create_dump_from_input,
     get_cluster_atoms_dict,
     get_sputtered_ids,
 )

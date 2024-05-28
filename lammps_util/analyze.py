@@ -166,7 +166,7 @@ def calc_surface(
     )
     ax.set_zlim3d(-60, 15)
     plt.savefig(f"{run_dir / 'surface_3d.png'}")
-    plt.close()
+    plt.close("all")
 
     return sigma
 
@@ -245,6 +245,9 @@ def clusters_parse_angle_dist(file_path: Path, n_runs: int):
     energy_table[:, 0] = np.linspace(5, 85, 9)
 
     for i in range(0, len(clusters)):
+        if np.isnan(clusters_enrg_ang[i, 1]):
+            continue
+
         angle_index = int(np.floor(clusters_enrg_ang[i, 1])) // 10
         sim_index = int(clusters_sim_num_n[i, 0])
 
@@ -358,6 +361,69 @@ def create_clusters_dump(
     run 0
     """
     lmp.commands_string(init)
+
+
+def create_dump_from_input(input: Path, output: Path):
+    lmp = lammps()
+    script = f"""
+    read_data {input}
+    write_dump all custom {output} id x y z vx vy vz type 
+    """
+    lmp.commands_string(script)
+
+
+def create_crater_dump(run_dir: Path):
+    input_path = run_dir / "input.data"
+    input_dump_path = run_dir / "dump.input"
+    create_dump_from_input(input_path, input_dump_path)
+
+    input_dump = Dump(input_dump_path)
+    final_dump = Dump(run_dir / "dump.final")
+    crater_path = run_dir / "dump.crater"
+
+    with open(run_dir / "vars.json", "r") as file:
+        vars = json.load(file)
+    print(vars)
+
+    C60_x = float(vars["C60_x"])
+    C60_y = float(vars["C60_y"])
+    lmp = lammps()
+    script = f"""
+    units metal
+    dimension 3
+    boundary p p m
+    atom_style atomic
+    atom_modify map yes
+    
+    read_data {input_path}
+    displace_atoms all move {C60_x} {C60_y} 0 units box
+
+    pair_style tersoff/zbl
+    pair_coeff * * SiC.tersoff.zbl Si C
+    neigh_modify every 1 delay 0 check no
+    neigh_modify binsize 0.0
+    neigh_modify one 4000
+
+    group Si type 1
+
+    compute voro_occupation Si voronoi/atom occupation only_group
+    variable is_vacancy atom "c_voro_occupation[1]==0"
+
+    run 0
+    group vac1 variable is_vacancy
+
+    read_dump {final_dump.name} {final_dump.timesteps[0][0]} x y z add keep replace yes
+
+    run 0
+    group vac2 variable is_vacancy
+    group C type 2
+    group vac3 subtract vac2 C
+
+    read_dump {input_dump.name} {input_dump.timesteps[0][0]} x y z add keep replace yes
+    displace_atoms all move {C60_x} {C60_y} 0 units box
+    write_dump vac3 custom {crater_path} id type x y z
+    """
+    lmp.commands_string(script)
 
 
 def get_sputtered_ids(
