@@ -4,14 +4,11 @@ from pathlib import Path
 import tempfile
 import logging
 import operator
-import json
 
 import matplotlib.pyplot as plt
 import numpy as np
-from lammps import lammps
 
 from .classes import Dump, Atom
-from .lammps import lammps_run
 from .filesystem import save_table, file_get_suffix, file_without_suffix
 
 
@@ -308,110 +305,6 @@ def clusters_parse_sum(file_path: Path, n_runs: int):
     save_table(output_path, table, header_str, dtype="d")
 
 
-def lammps_script_init() -> str:
-    return f"""
-    units metal
-    dimension 3
-    boundary p p m
-    atom_style atomic
-    atom_modify map yes
-    """
-
-
-def lammps_script_potential() -> str:
-    return f"""
-    pair_style tersoff/zbl
-    pair_coeff * * SiC.tersoff.zbl Si C
-    neigh_modify every 1 delay 0 check no
-    neigh_modify binsize 0.0
-    neigh_modify one 4000
-    """
-
-
-def create_clusters_dump(
-    dump_path: Path, timestep: int, out_path: Path
-) -> None:
-    lmp = lammps()
-    init = f"""
-    {lammps_script_init()}
-
-    region r block -1 1 -1 1 -1 1
-    create_box 2 r
-
-    read_dump {dump_path} {timestep} x y z vx vy vz box yes add keep
-
-    mass 1 28.08553
-    mass 2 12.011
-
-    {lammps_script_potential()}
-
-    compute atom_ke all ke/atom
-    compute clusters all cluster/atom 3
-    compute mass all property/atom mass
-    dump clusters all custom 1 {out_path} id x y z vx vy vz type c_mass c_clusters c_atom_ke
-    run 0
-    """
-    lmp.commands_string(init)
-
-
-def create_dump_from_input(input: Path, output: Path):
-    lmp = lammps()
-    script = f"""
-    read_data {input}
-    write_dump all custom {output} id x y z vx vy vz type 
-    """
-    lmp.commands_string(script)
-
-
-def create_crater_dump(run_dir: Path):
-    input_path = run_dir / "input.data"
-    input_dump_path = run_dir / "dump.input"
-    create_dump_from_input(input_path, input_dump_path)
-
-    input_dump = Dump(input_dump_path)
-    final_dump = Dump(run_dir / "dump.final")
-    crater_path = run_dir / "dump.crater"
-
-    with open(run_dir / "vars.json", "r") as file:
-        vars = json.load(file)
-
-    C60_x = float(vars["C60_x"])
-    C60_y = float(vars["C60_y"])
-    lmp = lammps()
-    script = f"""
-    {lammps_script_init()}
-    
-    read_data {input_path}
-    displace_atoms all move {C60_x} {C60_y} 0 units box
-
-    {lammps_script_potential()}
-
-    group Si type 1
-
-    compute voro_occupation Si voronoi/atom occupation only_group
-    variable is_vacancy atom "c_voro_occupation[1]==0"
-
-    run 0
-    group vac1 variable is_vacancy
-
-    read_dump {final_dump.name} {final_dump.timesteps[0][0]} x y z add keep replace yes
-
-    run 0
-    group vac2 variable is_vacancy
-    group C type 2
-    group vac3 subtract vac2 C
-
-    read_dump {input_dump.name} {input_dump.timesteps[0][0]} x y z add keep replace yes
-    displace_atoms all move {C60_x} {C60_y} 0 units box
-
-    compute voro_vol vac3 voronoi/atom only_group
-    compute clusters vac3 cluster/atom 3
-    dump clusters vac3 custom 1 {crater_path} id x y z type c_clusters c_voro_vol[1]
-    run 0
-    """
-    lmp.commands_string(script)
-
-
 def get_sputtered_ids(
     dump: Dump,
 ) -> list[int]:
@@ -485,3 +378,44 @@ def calc_input_zero_lvl(input_file: Path) -> float:
     create_dump_from_input(input_file, dump_path)
     dump = Dump(dump_path)
     return calc_dump_zero_lvl(dump)
+
+
+def get_crater_info(
+    dump_crater: Dump, sim_num: int, zero_lvl: float
+) -> np.ndarray:
+    id = dump_crater["id"]
+    z = dump_crater["z"]
+    clusters = dump_crater["c_clusters"]
+
+    crater_id = np.bincount(clusters.astype(int)).argmax()
+    atoms = []
+    for i in range(0, len(id)):
+        if clusters[i] == crater_id:
+            atoms.append(Atom(z=z[i], id=id[i]))
+
+    cell_vol = float(np.median(dump_crater["c_voro_vol[1]"]))
+    crater_vol = cell_vol * len(atoms)
+
+    surface_count = 0
+    z = []
+    for atom in atoms:
+        z.append(atom.z)
+        if atom.z > -2.4 * 0.707 + zero_lvl:
+            surface_count += 1
+    z = np.array(z)
+
+    cell_surface = 7.3712
+    surface_area = cell_surface * surface_count
+
+    return np.array(
+        [
+            [
+                sim_num,
+                len(atoms),
+                crater_vol,
+                surface_area,
+                z.mean() - zero_lvl,
+                z.min() - zero_lvl,
+            ]
+        ]
+    )
