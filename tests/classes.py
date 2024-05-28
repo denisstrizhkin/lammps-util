@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from pathlib import Path
 
 from lammps_util import Atom, Cluster, Dump
@@ -106,8 +107,8 @@ class TestClasses(TestLAMMPSUtil):
         self.assertEqual(cluster.mx, -206.9193332565)
         self.assertEqual(cluster.my, 394.1767031564999)
         self.assertEqual(cluster.mz, 1497.018538435)
-        # self.assertEqual(cluster.angle, 3.51)
-        self.assertEqual(cluster.ek, 1)
+        self.assertAlmostEqual(cluster.angle, 16.5615, 3)
+        self.assertAlmostEqual(cluster.ek, 1.314, 3)
 
 
 if __name__ == "__main__":
