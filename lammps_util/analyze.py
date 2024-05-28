@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 import logging
 import operator
+import json
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,28 +13,6 @@ from lammps import lammps
 from .classes import Dump, Atom
 from .lammps import lammps_run
 from .filesystem import save_table, file_get_suffix, file_without_suffix
-
-
-def calc_zero_lvl(input_file: Path, in_path: Path) -> float:
-    """calc_zero_lvl"""
-
-    tmp_dir = Path(tempfile.gettempdir())
-
-    dump_path = tmp_dir / "dump.temp"
-    dump_str = "x y z"
-
-    lammps_run(
-        in_path,
-        {
-            "input_file": str(input_file),
-            "dump_path": str(dump_path),
-            "dump_str": dump_str,
-        },
-    )
-
-    dump = Dump(dump_path)
-
-    return dump["z"][:].max()
 
 
 def calc_surface_values(
@@ -494,3 +473,15 @@ def get_cluster_atoms_dict(
         cluster_dict.pop(cid)
 
     return cluster_dict, rim_atoms
+
+
+def calc_dump_zero_lvl(dump: Dump) -> float:
+    return dump["z"][:].max()
+
+
+def calc_input_zero_lvl(input_file: Path) -> float:
+    tmp_dir = Path(tempfile.gettempdir())
+    dump_path = tmp_dir / "dump.temp"
+    create_dump_from_input(input_file, dump_path)
+    dump = Dump(dump_path)
+    return calc_dump_zero_lvl(dump)
