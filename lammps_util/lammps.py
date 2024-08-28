@@ -125,14 +125,14 @@ def create_crater_dump(run_dir: Path):
     with open(run_dir / "vars.json", "r") as file:
         vars = json.load(file)
 
-    C60_x = float(vars["C60_x"])
-    C60_y = float(vars["C60_y"])
+    crystal_x = float(vars["crystal_x"])
+    crystal_y = float(vars["crystal_y"])
     lmp = lammps()
     script = f"""
     {lammps_script_init()}
     
     read_data {input_path}
-    displace_atoms all move {C60_x} {C60_y} 0 units box
+    displace_atoms all move {crystal_x} {crystal_y} 0 units box
 
     {lammps_script_potential()}
 
@@ -152,7 +152,7 @@ def create_crater_dump(run_dir: Path):
     group vac3 subtract vac2 C
 
     read_dump {input_dump.name} {input_dump.timesteps[0][0]} x y z add keep replace yes
-    displace_atoms all move {C60_x} {C60_y} 0 units box
+    displace_atoms all move {crystal_x} {crystal_y} 0 units box
 
     compute voro_vol vac3 voronoi/atom only_group
     compute clusters vac3 cluster/atom 3
