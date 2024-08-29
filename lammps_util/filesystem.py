@@ -70,7 +70,7 @@ def dump_delete_atoms(
                 num_atoms = int(line) - len(ids_to_delete)
                 f_out.write(f"{num_atoms}\n")
             elif (cnt < 10) or (
-                not int(line.split(" ", 1)[0]) in ids_to_delete
+                int(line.split(" ", 1)[0]) not in ids_to_delete
             ):
                 f_out.write(line)
 
@@ -95,6 +95,6 @@ def input_delete_atoms(
             elif (
                 (cnt < 17)
                 or len(tokens) == 1
-                or not int(tokens[0]) in ids_to_delete
+                or int(tokens[0]) not in ids_to_delete
             ):
                 f_out.write(line)

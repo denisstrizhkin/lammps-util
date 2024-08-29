@@ -256,7 +256,7 @@ def clusters_parse(file_path: Path, n_runs: int):
             clusters_dic[cluster_str] = {}
 
         sim_num = int(cluster[0])
-        if not cluster[0] in clusters_dic[cluster_str]:
+        if cluster[0] not in clusters_dic[cluster_str]:
             clusters_dic[cluster_str][sim_num] = 0
 
         clusters_dic[cluster_str][sim_num] += 1

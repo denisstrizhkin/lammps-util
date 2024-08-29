@@ -3,7 +3,7 @@
 import logging
 import subprocess
 import time
-import json
+import tempfile
 from pathlib import Path
 
 from lammps import lammps
@@ -59,7 +59,7 @@ def lammps_run(
 
 
 def lammps_script_init() -> str:
-    return f"""
+    return """
     units metal
     dimension 3
     boundary p p m
@@ -69,7 +69,7 @@ def lammps_script_init() -> str:
 
 
 def lammps_script_potential() -> str:
-    return f"""
+    return """
     pair_style tersoff/zbl
     pair_coeff * * SiC.tersoff.zbl Si C
     neigh_modify every 1 delay 0 check no
@@ -113,50 +113,43 @@ def create_dump_from_input(input: Path, output: Path):
     lmp.commands_string(script)
 
 
-def create_crater_dump(run_dir: Path):
-    input_path = run_dir / "input.data"
-    input_dump_path = run_dir / "dump.input"
-    create_dump_from_input(input_path, input_dump_path)
-
-    input_dump = Dump(input_dump_path)
-    final_dump = Dump(run_dir / "dump.final")
-    crater_path = run_dir / "dump.crater"
-
-    with open(run_dir / "vars.json", "r") as file:
-        vars = json.load(file)
-
-    crystal_x = float(vars["crystal_x"])
-    crystal_y = float(vars["crystal_y"])
+def create_crater_dump(
+    dump_crater_path, dump_final, input_path, offset_x=0, offset_y=0
+):
     lmp = lammps()
-    script = f"""
-    {lammps_script_init()}
-    
-    read_data {input_path}
-    displace_atoms all move {crystal_x} {crystal_y} 0 units box
+    with tempfile.NamedTemporaryFile(mode="r") as f:
+        dump_input_path = f.name
+        create_dump_from_input(input_path, dump_input_path)
+        dump_input = Dump(dump_input_path)
+        script = f"""
+        {lammps_script_init()}
+        
+        read_data {input_path}
+        displace_atoms all move {offset_x} {offset_y} 0 units box
 
-    {lammps_script_potential()}
+        {lammps_script_potential()}
 
-    group Si type 1
+        group Si type 1
 
-    compute voro_occupation Si voronoi/atom occupation only_group
-    variable is_vacancy atom "c_voro_occupation[1]==0"
+        compute voro_occupation Si voronoi/atom occupation only_group
+        variable is_vacancy atom "c_voro_occupation[1]==0"
 
-    run 0
-    group vac1 variable is_vacancy
+        run 0
+        group vac1 variable is_vacancy
 
-    read_dump {final_dump.name} {final_dump.timesteps[0][0]} x y z add keep replace yes
+        read_dump {dump_final.name} {dump_final.timesteps[0][0]} x y z add keep replace yes
 
-    run 0
-    group vac2 variable is_vacancy
-    group C type 2
-    group vac3 subtract vac2 C
+        run 0
+        group vac2 variable is_vacancy
+        group C type 2
+        group vac3 subtract vac2 C
 
-    read_dump {input_dump.name} {input_dump.timesteps[0][0]} x y z add keep replace yes
-    displace_atoms all move {crystal_x} {crystal_y} 0 units box
+        read_dump {dump_input.name} {dump_input.timesteps[0][0]} x y z add keep replace yes
+        displace_atoms all move {offset_x} {offset_y} 0 units box
 
-    compute voro_vol vac3 voronoi/atom only_group
-    compute clusters vac3 cluster/atom 3
-    dump clusters vac3 custom 1 {crater_path} id x y z type c_clusters c_voro_vol[1]
-    run 0
-    """
+        compute voro_vol vac3 voronoi/atom only_group
+        compute clusters vac3 cluster/atom 3
+        dump clusters vac3 custom 1 {dump_crater_path} id x y z type c_clusters c_voro_vol[1]
+        run 0
+        """
     lmp.commands_string(script)
