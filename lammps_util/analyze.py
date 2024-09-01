@@ -10,6 +10,7 @@ import numpy as np
 
 from .classes import Dump, Atom
 from .filesystem import save_table, file_get_suffix, file_without_suffix
+from .lammps import create_dump_from_input
 
 
 def calc_surface_values(
