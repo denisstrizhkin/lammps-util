@@ -53,9 +53,7 @@ def save_table(filename, table, header="", dtype="f", precision=5, mode="w"):
         np.savetxt(file, table, delimiter="\t", fmt=fmt_str, header=header)
 
 
-def dump_delete_atoms(
-    in_path: Path, out_path: Path, ids_to_delete: List[int]
-) -> None:
+def dump_delete_atoms(in_path: Path, out_path: Path, ids_to_delete: List[int]) -> None:
     """dump_delete_atoms"""
 
     with (
@@ -69,15 +67,11 @@ def dump_delete_atoms(
             if cnt == 4:
                 num_atoms = int(line) - len(ids_to_delete)
                 f_out.write(f"{num_atoms}\n")
-            elif (cnt < 10) or (
-                int(line.split(" ", 1)[0]) not in ids_to_delete
-            ):
+            elif (cnt < 10) or (int(line.split(" ", 1)[0]) not in ids_to_delete):
                 f_out.write(line)
 
 
-def input_delete_atoms(
-    in_path: Path, out_path: Path, ids_to_delete: List[int]
-) -> None:
+def input_delete_atoms(in_path: Path, out_path: Path, ids_to_delete: List[int]) -> None:
     """input_delete_atoms"""
 
     with (
@@ -92,9 +86,5 @@ def input_delete_atoms(
             if cnt == 3:
                 num_atoms = int(tokens[0]) - len(ids_to_delete)
                 f_out.write(f"{num_atoms} atoms\n")
-            elif (
-                (cnt < 17)
-                or len(tokens) == 1
-                or int(tokens[0]) not in ids_to_delete
-            ):
+            elif (cnt < 17) or len(tokens) == 1 or int(tokens[0]) not in ids_to_delete:
                 f_out.write(line)

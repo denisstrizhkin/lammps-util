@@ -1,28 +1,14 @@
 [project]
 name = "lammps-util"
-version = "0.0.1"
-authors = [
-  { name="Denis Strizhkin", email="strdenis02@gmail.com" },
-]
-description = "Python functions for working with LAMMPS"
+version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+authors = [
+    { name = "Denis Strizhkin", email = "strdenis02@gmail.com" }
 ]
-
-dependencies = [
-  "numpy >= 2.1.2",
-  "matplotlib >= 3.9.2",
-]
-
-[project.urls]
-Homepage = "https://github.com/denisstrizhkin/lammps-util"
+requires-python = ">=3.12"
+dependencies = ["numpy", "matplotlib"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.black]
-line-length = 80

@@ -140,11 +140,7 @@ class Cluster:
                 self.count_c += 1
 
         self.ek = (
-            2
-            * 5.1875
-            * 1e-5
-            * (self.mx**2 + self.my**2 + self.mz**2)
-            / (2 * self.mass)
+            2 * 5.1875 * 1e-5 * (self.mx**2 + self.my**2 + self.mz**2) / (2 * self.mass)
         )
 
         self.angle = np.arctan(self.mz / np.sqrt(self.mx**2 + self.my**2))

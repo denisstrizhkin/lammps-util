@@ -111,9 +111,7 @@ def calc_surface(
         num_bins = np.linspace(min_boundary, max_boundary, n_bins)
         return num_bins
 
-    coord_z = (
-        calc_surface_values(data, lattice, c60_width, square_width) - zero_lvl
-    )
+    coord_z = calc_surface_values(data, lattice, c60_width, square_width) - zero_lvl
 
     len_x = coord_z.shape[0]
     coord_x = np.linspace(0, len_x - 1, len_x, dtype=int)
@@ -151,10 +149,7 @@ def calc_surface(
 def get_parsed_file_path(file_path: Path, suffix: str = ""):
     """get_parsed_file_path"""
     return (
-        file_without_suffix(file_path)
-        + "_parsed"
-        + suffix
-        + file_get_suffix(file_path)
+        file_without_suffix(file_path) + "_parsed" + suffix + file_get_suffix(file_path)
     )
 
 
@@ -326,9 +321,7 @@ def get_cluster_atoms_dict(
     unique, counts = np.unique(cluster_id, return_counts=True)
     cluster_count = dict(zip(unique, counts))
 
-    cluster_to_delete = dict(
-        filter(lambda x: x[1] > 1000, cluster_count.items())
-    )
+    cluster_to_delete = dict(filter(lambda x: x[1] > 1000, cluster_count.items()))
     rim_id = max(cluster_to_delete.items(), key=operator.itemgetter(1))[0]
 
     cluster_dict: dict[int, list[Atom]] = {}
@@ -361,9 +354,7 @@ def get_cluster_atoms_dict(
 
     rim_atoms = cluster_dict[rim_id]
     for cid in cluster_to_delete.keys():
-        logging.info(
-            f"deleteing cluster {cid} with {len(cluster_dict[cid])} atoms"
-        )
+        logging.info(f"deleteing cluster {cid} with {len(cluster_dict[cid])} atoms")
         cluster_dict.pop(cid)
 
     return cluster_dict, rim_atoms
@@ -381,9 +372,7 @@ def calc_input_zero_lvl(input_file: Path) -> float:
     return calc_dump_zero_lvl(dump)
 
 
-def get_crater_info(
-    dump_crater: Dump, sim_num: int, zero_lvl: float
-) -> np.ndarray:
+def get_crater_info(dump_crater: Dump, sim_num: int, zero_lvl: float) -> np.ndarray:
     id = dump_crater["id"]
     z = dump_crater["z"]
     clusters = dump_crater["c_clusters"]
