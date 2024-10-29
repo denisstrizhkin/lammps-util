@@ -1,7 +1,6 @@
 """ lammps_util """
 
 from .lammps import (
-    lammps_run,
     create_clusters_dump,
     create_crater_dump,
     create_dump_from_input,

@@ -1,66 +1,16 @@
 """ lammps_util.lammps """
 
-import logging
-import subprocess
-import time
 import uuid
 import tempfile
 from pathlib import Path
-
-from lammps import lammps
+from lammps_mpi4py import LammpsMPI
 
 from .classes import Dump
 
 
-def lammps_run(
-    in_file: Path,
-    in_vars: dict[str, str] | None = None,
-    omp_threads: int = 4,
-    mpi_cores: int = 3,
-    log_file: Path = Path("./log.lammps"),
-) -> int:
-    """lammps_run"""
-
-    if in_vars is None:
-        in_vars = {}
-
-    # fmt: off
-    args = [
-        "mpirun", "-np", str(mpi_cores),
-        "lmp", "-in", str(in_file)
-    ]
-
-    if omp_threads <= 0:
-        args += [
-            "-sf", "gpu",
-            "-pk", "gpu", "0",
-        ]
-    else:
-        args += [
-            "-sf", "omp",
-            "-pk", "omp", str(omp_threads),
-        ]
-    # fmt: on
-
-    for key, value in in_vars.items():
-        args += ["-var", key, value]
-
-    args += ["-log", str(log_file)]
-    logging.info(" ".join(args))
-
-    with subprocess.Popen(args, encoding="utf-8") as process:
-        while process.poll() is None:
-            time.sleep(0.1)
-
-        if process.returncode != 0:
-            logging.error("FAIL")
-            return 1
-
-    return 0
-
-
 def lammps_script_init() -> str:
     return """
+    clear
     units metal
     dimension 3
     boundary p p m
@@ -80,9 +30,8 @@ def lammps_script_potential() -> str:
 
 
 def create_clusters_dump(
-    dump_path: Path, timestep: int, out_path: Path
+    lmp: LammpsMPI, dump_path: Path, timestep: int, out_path: Path
 ) -> None:
-    lmp = lammps()
     init = f"""
     {lammps_script_init()}
 
@@ -105,8 +54,7 @@ def create_clusters_dump(
     lmp.commands_string(init)
 
 
-def create_dump_from_input(input: Path, output: Path):
-    lmp = lammps()
+def create_dump_from_input(lmp: LammpsMPI, input: Path, output: Path) -> None:
     script = f"""
     read_data {input}
     write_dump all custom {output} id x y z vx vy vz type 
@@ -115,11 +63,15 @@ def create_dump_from_input(input: Path, output: Path):
 
 
 def create_crater_dump(
-    dump_crater_path, dump_final, input_path, offset_x=0, offset_y=0
-):
-    lmp = lammps()
+    lmp: LammpsMPI,
+    dump_crater_path: Path,
+    dump_final: Dump,
+    input_path: Path,
+    offset_x: float = 0,
+    offset_y: float = 0,
+) -> None:
     dump_input_path = Path(f"{tempfile.gettempdir()}/{uuid.uuid4()}")
-    create_dump_from_input(input_path, dump_input_path)
+    create_dump_from_input(lmp, input_path, dump_input_path)
     dump_input = Dump(dump_input_path)
     script = f"""
     {lammps_script_init()}

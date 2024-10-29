@@ -13,7 +13,8 @@ classifiers = [
 ]
 
 dependencies = [
-  "numpy >= 1.26.2"
+  "numpy >= 2.1.2",
+  "matplotlib >= 3.9.2",
 ]
 
 [project.urls]
