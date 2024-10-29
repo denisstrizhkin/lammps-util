@@ -56,6 +56,8 @@ def create_clusters_dump(
 
 def create_dump_from_input(lmp: LammpsMPI, input: Path, output: Path) -> None:
     script = f"""
+    {lammps_script_init()}
+
     read_data {input}
     write_dump all custom {output} id x y z vx vy vz type 
     """
