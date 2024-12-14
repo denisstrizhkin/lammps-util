@@ -86,6 +86,7 @@ def create_crater_dump(
     group Si type 1
 
     compute voro_occupation Si voronoi/atom occupation only_group
+    compute voro_vol Si voronoi/atom only_group
     variable is_vacancy atom "c_voro_occupation[1]==0"
 
     run 0
@@ -101,7 +102,6 @@ def create_crater_dump(
     read_dump {dump_input.name} {dump_input.timesteps[0][0]} x y z add keep replace yes
     displace_atoms all move {offset_x} {offset_y} 0 units box
 
-    compute voro_vol vac3 voronoi/atom only_group
     compute clusters vac3 cluster/atom 3
     dump clusters vac3 custom 1 {dump_crater_path} id x y z type c_clusters c_voro_vol[1]
     run 0
