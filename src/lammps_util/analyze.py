@@ -374,36 +374,34 @@ def calc_input_zero_lvl(input_file: Path) -> float:
 
 def get_crater_info(dump_crater: Dump, sim_num: int, zero_lvl: float) -> np.ndarray:
     id = dump_crater["id"]
+    if len(id) == 0:
+        return np.array(
+            [
+                [
+                    sim_num,
+                    0,
+                    0,
+                    0,
+                    zero_lvl,
+                    zero_lvl,
+                ]
+            ]
+        )
+
     z = dump_crater["z"]
     clusters = dump_crater["c_clusters"]
-
     crater_id = np.bincount(clusters.astype(int)).argmax()
-    atoms = []
-    for i in range(0, len(id)):
-        if clusters[i] == crater_id:
-            atoms.append(Atom(z=z[i], id=id[i]))
-
+    z = z[clusters == crater_id]
+    surface_count = len(z[z > -2.4 * 0.707 + zero_lvl])
     cell_vol = float(np.median(dump_crater["c_voro_vol[1]"]))
-    crater_vol = cell_vol * len(atoms)
-
-    surface_count = 0
-    z = []
-    for atom in atoms:
-        z.append(atom.z)
-        if atom.z > -2.4 * 0.707 + zero_lvl:
-            surface_count += 1
-    z = np.array(z)
-
     cell_surface = 7.3712
-    surface_area = cell_surface * surface_count
-
     return np.array(
         [
             [
                 sim_num,
-                len(atoms),
-                crater_vol,
-                surface_area,
+                len(z),
+                cell_vol * len(z),
+                cell_surface * surface_count,
                 z.mean() - zero_lvl,
                 z.min() - zero_lvl,
             ]
